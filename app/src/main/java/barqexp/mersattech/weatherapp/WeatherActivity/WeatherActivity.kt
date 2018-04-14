@@ -16,6 +16,7 @@ import barqexp.mersattech.weatherapp.Interface.WeatherView
 import barqexp.mersattech.weatherapp.Location.Location
 import barqexp.mersattech.weatherapp.Model.WeatherModel
 import barqexp.mersattech.weatherapp.Model.WeatherTextModel
+import barqexp.mersattech.weatherapp.Network.NetworkUtils
 import barqexp.mersattech.weatherapp.Presenter.WeatherPresenter
 
 
@@ -31,7 +32,14 @@ class WeatherActivity : AppCompatActivity(), WeatherView {
         weatherPresenter = WeatherPresenter(this)
         weather_RV.layoutManager = LinearLayoutManager(this)
         Location.getInstance(this).getLocation()
+        retry_btn.setOnClickListener(object:View.OnClickListener
+        {
+            override fun onClick(p0: View?) {
 
+                subscribeToLocationData()
+//                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+        })
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) !== PackageManager.PERMISSION_GRANTED
             && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) !== PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -46,7 +54,7 @@ class WeatherActivity : AppCompatActivity(), WeatherView {
                     MY_PERMISSIONS_REQUEST_LOCATION)
             return
         }
-            subscribeToLocationData()
+
 
 
 
@@ -55,10 +63,16 @@ class WeatherActivity : AppCompatActivity(), WeatherView {
 
 
     private fun subscribeToLocationData() {
+        if(!NetworkUtils.getInstance().isNetworkAvailable(this)) {
+            updatRetryNetworkView()
+            return
+        };
+
         val locationService = Location.getInstance(this)
         locationService?.locationLiveData?.observe(this, android.arch.lifecycle.Observer
         { latLng ->
             mlatLng = latLng
+
             weatherPresenter.updateWeather(mlatLng)
         })
     }
@@ -85,7 +99,7 @@ class WeatherActivity : AppCompatActivity(), WeatherView {
         retry_btn.visibility = View.GONE
         place_TV.visibility = View.VISIBLE
         temptext_TV.visibility = View.VISIBLE
-        recyler_RL.visibility = View.VISIBLE
+        weather_RV.visibility = View.VISIBLE
 
 
     }
@@ -96,13 +110,12 @@ class WeatherActivity : AppCompatActivity(), WeatherView {
 
     }
 
-    override fun updatRetryView() {
-        super.updatRetryView()
+    fun updatRetryNetworkView() {
         error_IV.visibility = View.VISIBLE
         retry_btn.visibility = View.VISIBLE
         place_TV.visibility = View.GONE
         temptext_TV.visibility = View.GONE
-        recyler_RL.visibility = View.GONE
+        weather_RV.visibility = View.GONE
 
 
     }
